@@ -20,7 +20,7 @@ export function Contact() {
       <Reveal delay={0.15}>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <MagneticButton href={`mailto:${EMAIL}`}>{t("cta")}</MagneticButton>
-          <MagneticButton href="https://wa.me/62" variant="link">
+          <MagneticButton href="https://wa.me/6285156245709" variant="link">
             {t("whatsapp")}
           </MagneticButton>
         </div>
