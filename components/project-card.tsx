@@ -70,8 +70,20 @@ export function ProjectCard({
       <div className="p-5">
         <div className="flex items-center justify-between gap-4">
           <h3 className="text-lg font-semibold text-foreground">{project.title}</h3>
-          <span className="shrink-0 text-xs font-semibold text-foreground/80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-            {visitLabel} <span className="text-accent">↗</span>
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-foreground/80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+            {visitLabel}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.25}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5 text-accent"
+              aria-hidden
+            >
+              <path d="M7 17 17 7M8 7h9v9" />
+            </svg>
           </span>
         </div>
         {description && (

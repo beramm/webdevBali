@@ -76,6 +76,31 @@ export function Hero() {
   }, [splashDone]);
   const skipIntro = intro === "skip";
 
+  // How the video behaves. Desktop scrubs the timeline on scroll; mobile can't
+  // reliably repaint a seeked, never-played <video> (iOS blanks it), so it
+  // autoplay-loops instead; reduced motion shows the static poster.
+  const [mode, setMode] = useState<"scrub" | "play" | "static">("static");
+  useLayoutEffect(() => {
+    if (reduce) {
+      setMode("static");
+      return;
+    }
+    const desktop = window.matchMedia("(min-width: 640px)").matches;
+    setMode(desktop ? "scrub" : "play");
+  }, [reduce]);
+
+  // Enforce the video state imperatively (attributes alone won't restart it).
+  useLayoutEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (mode === "play") {
+      v.play?.().catch(() => {});
+    } else {
+      v.pause?.();
+      if (mode === "static") v.currentTime = 0;
+    }
+  }, [mode]);
+
   // The section is 300vh tall; the inner stage is sticky, so scrolling
   // through it drives the video timeline instead of moving the page.
   const { scrollYProgress } = useScroll({
@@ -100,9 +125,9 @@ export function Hero() {
     const ramp = (from: number, to: number) =>
       Math.min(1, Math.max(0, (progress - from) / (to - from)));
 
-    // Video scrub across the first 80% of the scroll range.
+    // Video scrub across the first 80% of the scroll range (desktop only).
     const video = videoRef.current;
-    if (video && video.duration) {
+    if (mode === "scrub" && video && video.duration) {
       const target = ramp(0, 0.8) * (video.duration - 0.05);
       if (Math.abs(video.currentTime - target) > 0.01) {
         video.currentTime = target;
@@ -139,6 +164,8 @@ export function Hero() {
             muted
             playsInline
             preload="auto"
+            autoPlay={mode === "play"}
+            loop={mode === "play"}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-zinc-950/30 to-zinc-950/60" />
         </div>

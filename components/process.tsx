@@ -166,6 +166,10 @@ export function Process() {
   const block1 = useRef<HTMLDivElement>(null);
   const block2 = useRef<HTMLDivElement>(null);
   const block3 = useRef<HTMLDivElement>(null);
+  const mobileRef = useRef<HTMLDivElement>(null);
+  const firstDotRef = useRef<HTMLSpanElement>(null);
+  const lastDotRef = useRef<HTMLSpanElement>(null);
+  const [mLine, setMLine] = useState({ top: 0, height: 0 });
 
   const [segs, setSegs] = useState<Seg[]>([]);
   const [segLens, setSegLens] = useState<number[]>([]);
@@ -240,6 +244,15 @@ export function Process() {
     }
   }
 
+  // Mobile: a single vertical line that draws in sync with scroll.
+  const { scrollYProgress: mobileProgress } = useScroll({
+    target: mobileRef,
+    offset: ["start 0.85", "end 0.65"],
+  });
+  const mobileFill = useTransform(mobileProgress, (p) =>
+    Math.min(1, Math.max(0, p))
+  );
+
   const measure = useCallback(() => {
     const container = containerRef.current;
     if (!container || window.innerWidth < 640) {
@@ -308,6 +321,30 @@ export function Process() {
       window.removeEventListener("resize", measure);
     };
   }, [measure]);
+
+  // Measure the mobile line's extent (first dot centre → last dot centre).
+  useLayoutEffect(() => {
+    const measureLine = () => {
+      const c = mobileRef.current;
+      const a = firstDotRef.current;
+      const b = lastDotRef.current;
+      if (!c || !a || !b) return;
+      const cr = c.getBoundingClientRect();
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      const top = ar.top + ar.height / 2 - cr.top;
+      const bottom = br.top + br.height / 2 - cr.top;
+      setMLine({ top, height: Math.max(0, bottom - top) });
+    };
+    measureLine();
+    const ro = new ResizeObserver(measureLine);
+    if (mobileRef.current) ro.observe(mobileRef.current);
+    window.addEventListener("resize", measureLine);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measureLine);
+    };
+  }, []);
 
   // Measure each connector's length for its dash animation.
   useEffect(() => {
@@ -433,16 +470,33 @@ export function Process() {
       </div>
 
       {/* Mobile: vertical flow */}
-      <div className="mt-12 sm:hidden">
+      <div ref={mobileRef} className="relative mt-12 sm:hidden">
+        {/* faint full track */}
+        <span
+          aria-hidden
+          className="absolute left-[5px] w-px bg-accent/20"
+          style={{ top: mLine.top, height: mLine.height }}
+        />
+        {/* scroll-synced fill */}
+        <motion.span
+          aria-hidden
+          className="absolute left-[5px] w-px origin-top bg-accent"
+          style={{
+            top: mLine.top,
+            height: mLine.height,
+            scaleY: reduce ? 1 : mobileFill,
+          }}
+        />
         {STEPS.map((key, i) => (
           <div key={key} className="relative pb-10 pl-8 last:pb-0">
-            {i < STEPS.length - 1 && (
-              <span
-                aria-hidden
-                className="absolute bottom-1 left-[5px] top-6 w-px bg-accent/25"
-              />
-            )}
             <span
+              ref={
+                i === 0
+                  ? firstDotRef
+                  : i === STEPS.length - 1
+                    ? lastDotRef
+                    : undefined
+              }
               aria-hidden
               className="absolute left-0 top-[7px] h-2.5 w-2.5 rounded-full bg-accent"
             />
