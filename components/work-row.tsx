@@ -68,6 +68,7 @@ export function WorkRow({
   owner,
   description,
   visitLabel,
+  testimonialLabel,
   flip,
   locale,
 }: {
@@ -75,6 +76,7 @@ export function WorkRow({
   owner: Testimonial | null;
   description: string;
   visitLabel: string;
+  testimonialLabel: string;
   flip: boolean;
   locale: string;
 }) {
@@ -215,6 +217,21 @@ export function WorkRow({
           flip ? "sm:order-1" : "sm:order-3"
         }`}
       >
+        {/* Mobile lacks the branch connectors, so a label + quote mark make it
+            clear these are the project's client testimonials. */}
+        <div className="flex items-center gap-2 sm:hidden">
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="h-4 w-4 text-accent"
+            aria-hidden
+          >
+            <path d="M9.5 5C6.5 5 4 7.5 4 10.5c0 2.8 2 5 4.7 5 .2 0 .3.2.2.4-.5 1.2-1.5 2.2-2.9 2.8-.3.1-.2.6.1.6 3.8-.4 6.9-3.6 6.9-7.8V10.5C13 7.5 12.5 5 9.5 5Zm9 0C15.5 5 13 7.5 13 10.5c0 2.8 2 5 4.7 5 .2 0 .3.2.2.4-.5 1.2-1.5 2.2-2.9 2.8-.3.1-.2.6.1.6 3.8-.4 6.9-3.6 6.9-7.8V10.5C22 7.5 21.5 5 18.5 5Z" />
+          </svg>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+            {testimonialLabel}
+          </span>
+        </div>
         <OwnerCaption owner={owner} />
         {quotes.map((text, i) => (
           <QuoteBubble

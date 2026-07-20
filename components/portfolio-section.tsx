@@ -92,6 +92,7 @@ export function PortfolioSection({
                     locale === "id" ? project.descriptionId : project.descriptionEn
                   }
                   visitLabel={t("visit")}
+                  testimonialLabel={t("clientSays")}
                   flip={flip}
                   locale={locale}
                 />
