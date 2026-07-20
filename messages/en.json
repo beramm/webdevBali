@@ -89,11 +89,6 @@
     "title": "Let's build yours",
     "subtitle": "Tell us what you need. We reply within one business day.",
     "cta": "Email us",
-    "whatsapp": "WhatsApp",
-    "copied": "Copied",
-    "copyHint": "Click to copy email address"
-  },
-  "footer": {
-    "rights": "All rights reserved."
+    "whatsapp": "WhatsApp"
   }
 }

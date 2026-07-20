@@ -131,6 +131,8 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-zinc-950 to-amber-950">
           <video
             ref={videoRef}
+            aria-hidden
+            tabIndex={-1}
             className="h-full w-full object-cover"
             src="/hero/bali.mp4"
             poster="/hero/poster.jpg"
