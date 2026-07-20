@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useMotionTemplate,
@@ -65,6 +65,21 @@ export function Hero() {
   const reduce = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Paint the current video frame onto the canvas (object-cover math). The
+  // canvas always renders, sidestepping iOS refusing to paint a seeked <video>.
+  const drawFrame = useCallback(() => {
+    const v = videoRef.current;
+    const c = canvasRef.current;
+    if (!v || !c || !v.videoWidth) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const scale = Math.max(c.width / v.videoWidth, c.height / v.videoHeight);
+    const dw = v.videoWidth * scale;
+    const dh = v.videoHeight * scale;
+    ctx.drawImage(v, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+  }, []);
 
   // Entrance waits for the splash curtain and must not replay when the
   // component mounts mid-scroll (locale switch, fast refresh).
@@ -108,6 +123,38 @@ export function Hero() {
       v.removeEventListener("loadeddata", prime);
     };
   }, [mode]);
+
+  // Size the canvas to its box (device-pixel-sharp) and repaint on resize.
+  useLayoutEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const resize = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const rect = c.getBoundingClientRect();
+      c.width = Math.round(rect.width * dpr);
+      c.height = Math.round(rect.height * dpr);
+      drawFrame();
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(c);
+    return () => ro.disconnect();
+  }, [drawFrame]);
+
+  // Repaint the canvas whenever the video has a new frame to show.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const draw = () => drawFrame();
+    v.addEventListener("seeked", draw);
+    v.addEventListener("loadeddata", draw);
+    v.addEventListener("timeupdate", draw);
+    return () => {
+      v.removeEventListener("seeked", draw);
+      v.removeEventListener("loadeddata", draw);
+      v.removeEventListener("timeupdate", draw);
+    };
+  }, [drawFrame]);
 
   // The section is 300vh tall; the inner stage is sticky, so scrolling
   // through it drives the video timeline instead of moving the page.
@@ -160,18 +207,25 @@ export function Hero() {
   return (
     <section ref={sectionRef} id="top" className="relative h-[200vh] sm:h-[300vh]">
       <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden">
-        {/* Video background with gradient fallback behind it */}
+        {/* Video decodes off-screen (opacity 0); the canvas is what paints,
+            so iOS can't blank the seeked frame. Gradient shows only until the
+            first frame draws. */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-zinc-950 to-amber-950">
           <video
             ref={videoRef}
             aria-hidden
             tabIndex={-1}
-            className="h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover opacity-0"
             src="/hero/bali.mp4"
             poster="/hero/poster.jpg"
             muted
             playsInline
             preload="auto"
+          />
+          <canvas
+            ref={canvasRef}
+            aria-hidden
+            className="absolute inset-0 h-full w-full"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-zinc-950/30 to-zinc-950/60" />
         </div>
