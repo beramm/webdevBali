@@ -1,0 +1,99 @@
+{
+  "nav": {
+    "work": "Karya",
+    "services": "Layanan",
+    "contact": "Kontak",
+    "openMenu": "Buka menu",
+    "closeMenu": "Tutup menu"
+  },
+  "hero": {
+    "eyebrow": "Studio web · Bali, Indonesia",
+    "titleLine1": "Kami membangun website",
+    "titleHighlight": "yang orang ingat.",
+    "subtitle": "Tanpa template. Tanpa ribet agensi. Website cepat yang benar-benar bekerja — dan halaman ini buktinya.",
+    "ctaPrimary": "Lihat karyanya",
+    "ctaSecondary": "Mulai proyek",
+    "scroll": "Gulir"
+  },
+  "services": {
+    "title": "Yang Anda dapat",
+    "items": {
+      "design": {
+        "title": "Desain & branding",
+        "description": "Desain custom sesuai brand Anda — tanpa template, tanpa jalan pintas."
+      },
+      "development": {
+        "title": "Pengembangan web",
+        "description": "Website modern dan cepat, dibangun dengan Next.js dan tersebar global."
+      },
+      "care": {
+        "title": "Perawatan & pertumbuhan",
+        "description": "Hosting, update, SEO dan analitik — kami jaga website Anda tetap prima."
+      }
+    }
+  },
+  "process": {
+    "title": "Cara kerjanya",
+    "subtitle": "Empat langkah. Anda selalu tahu persis posisi proyek Anda.",
+    "steps": {
+      "discover": {
+        "title": "Eksplorasi",
+        "description": "Kami membahas bisnis Anda, pelanggan Anda, dan tujuan website. Anda menerima proposal jelas dengan lingkup, jadwal, dan harga."
+      },
+      "build": {
+        "title": "Pengembangan",
+        "description": "Kami bangun website cepat, modern, dan mobile-first dengan Next.js. Anda bisa memantau progres lewat tautan preview langsung."
+      },
+      "seo": {
+        "title": "SEO & performa",
+        "description": "Kami meriset kata kunci yang benar-benar dicari pelanggan Anda, mengoptimalkan tiap halaman untuk Google, dan menjaga Core Web Vitals tetap hijau — website yang mudah ditemukan."
+      },
+      "launch": {
+        "title": "Rilis & berkembang",
+        "description": "Kami rilis di hosting global yang cepat, hubungkan domain dan analitik, lalu tetap siap untuk update, SEO, dan pengembangan."
+      }
+    }
+  },
+  "faq": {
+    "title": "Jawaban langsung",
+    "items": {
+      "price": {
+        "question": "Berapa biaya pembuatan website?",
+        "answer": "Kebanyakan proyek berkisar dari landing page sederhana hingga situs custom lengkap dengan CMS — harga tergantung lingkup. Setelah diskusi singkat, Anda menerima penawaran pasti tanpa biaya tersembunyi."
+      },
+      "timeline": {
+        "question": "Berapa lama pengerjaannya?",
+        "answer": "Landing page biasanya tayang dalam 1–2 minggu. Situs lebih besar dengan fitur custom umumnya 3–6 minggu dari mulai hingga rilis."
+      },
+      "included": {
+        "question": "Apa saja yang termasuk dalam proyek?",
+        "answer": "Desain, pengembangan, optimasi mobile, SEO dasar, pemasangan analitik, rilis di hosting cepat, serta serah terima agar Anda bisa mengubah konten sendiri."
+      },
+      "maintenance": {
+        "question": "Apakah ada layanan perawatan?",
+        "answer": "Ya — perawatan bulanan opsional: update, backup, perubahan kecil, serta pemantauan performa dan keamanan. Tanpa kontrak mengikat, bisa berhenti kapan saja."
+      },
+      "location": {
+        "question": "Apakah hanya melayani bisnis di Bali?",
+        "answer": "Tidak. Kami berbasis di Bali dan senang membantu bisnis lokal, tetapi kami juga bekerja jarak jauh dengan klien dari mana saja — komunikasi umumnya online."
+      }
+    }
+  },
+  "portfolio": {
+    "title": "Buktinya",
+    "subtitle": "Situs nyata, bisnis nyata, tayang sekarang.",
+    "visit": "Kunjungi situs",
+    "empty": "Proyek baru segera hadir."
+  },
+  "contact": {
+    "title": "Mari bangun milik Anda",
+    "subtitle": "Ceritakan kebutuhan Anda. Kami balas dalam satu hari kerja.",
+    "cta": "Email kami",
+    "whatsapp": "WhatsApp",
+    "copied": "Tersalin",
+    "copyHint": "Klik untuk menyalin alamat email"
+  },
+  "footer": {
+    "rights": "Hak cipta dilindungi."
+  }
+}

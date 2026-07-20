@@ -1,0 +1,99 @@
+{
+  "nav": {
+    "work": "Work",
+    "services": "Services",
+    "contact": "Contact",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "eyebrow": "Web studio · Bali, Indonesia",
+    "titleLine1": "We build websites",
+    "titleHighlight": "people remember.",
+    "subtitle": "No templates. No agency runaround. Just fast websites that work — and this page is the proof.",
+    "ctaPrimary": "See the work",
+    "ctaSecondary": "Start a project",
+    "scroll": "Scroll"
+  },
+  "services": {
+    "title": "What you get",
+    "items": {
+      "design": {
+        "title": "Design & branding",
+        "description": "Custom design that fits your brand — no templates, no shortcuts."
+      },
+      "development": {
+        "title": "Web development",
+        "description": "Fast, modern sites built with Next.js and deployed globally."
+      },
+      "care": {
+        "title": "Care & growth",
+        "description": "Hosting, updates, SEO and analytics — we keep your site working."
+      }
+    }
+  },
+  "process": {
+    "title": "How it works",
+    "subtitle": "Four steps. You always know exactly where your project stands.",
+    "steps": {
+      "discover": {
+        "title": "Discover",
+        "description": "We talk about your business, your customers and what the website needs to achieve. You get a clear proposal with scope, timeline and price."
+      },
+      "build": {
+        "title": "Build",
+        "description": "We build fast, modern and mobile-first with Next.js. You can follow progress on a live preview link at any time."
+      },
+      "seo": {
+        "title": "SEO & performance",
+        "description": "We research the keywords your customers actually search, optimize every page for Google, and keep Core Web Vitals in the green — a site built to be found."
+      },
+      "launch": {
+        "title": "Launch & grow",
+        "description": "We launch on fast global hosting, connect your domain and analytics, and stay available for updates, SEO and improvements."
+      }
+    }
+  },
+  "faq": {
+    "title": "Straight answers",
+    "items": {
+      "price": {
+        "question": "How much does a website cost?",
+        "answer": "Most projects land between a simple landing page and a full custom site with CMS — the price depends on scope. After a short call you get a fixed quote, no surprises."
+      },
+      "timeline": {
+        "question": "How long does it take?",
+        "answer": "A landing page is typically live in 1–2 weeks. Larger sites with custom features usually take 3–6 weeks from kickoff to launch."
+      },
+      "included": {
+        "question": "What's included in a project?",
+        "answer": "Design, development, mobile optimization, basic SEO, analytics setup, launch on fast hosting, and a handover so you can edit your own content."
+      },
+      "maintenance": {
+        "question": "Do you offer maintenance?",
+        "answer": "Yes — optional monthly care: updates, backups, small changes, performance and security monitoring. No lock-in, cancel anytime."
+      },
+      "location": {
+        "question": "Do you only work with businesses in Bali?",
+        "answer": "No. We're based in Bali and love working with local businesses, but we work remotely with clients anywhere — most communication happens online anyway."
+      }
+    }
+  },
+  "portfolio": {
+    "title": "The proof",
+    "subtitle": "Real sites, real businesses, live right now.",
+    "visit": "Visit site",
+    "empty": "New projects coming soon."
+  },
+  "contact": {
+    "title": "Let's build yours",
+    "subtitle": "Tell us what you need. We reply within one business day.",
+    "cta": "Email us",
+    "whatsapp": "WhatsApp",
+    "copied": "Copied",
+    "copyHint": "Click to copy email address"
+  },
+  "footer": {
+    "rights": "All rights reserved."
+  }
+}
