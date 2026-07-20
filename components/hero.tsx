@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useMotionTemplate,
@@ -14,6 +14,7 @@ import { MagneticButton } from "./magnetic-button";
 import { useSplash } from "./splash";
 
 const EASE = [0.21, 0.47, 0.32, 0.98] as const;
+const FRAME_COUNT = 60; // /public/hero/seq/001.jpg … 060.jpg
 
 function WordReveal({
   text,
@@ -66,20 +67,73 @@ export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const framesRef = useRef<HTMLImageElement[]>([]);
+  const curIdxRef = useRef(0);
 
-  // Paint the current video frame onto the canvas (object-cover math). The
-  // canvas always renders, sidestepping iOS refusing to paint a seeked <video>.
-  const drawFrame = useCallback(() => {
-    const v = videoRef.current;
+  // How the hero background renders:
+  //  scrub    — desktop: scrub the <video> timeline on scroll (smooth, cheap).
+  //  sequence — mobile: draw a preloaded image frame to a <canvas>. Mobile
+  //             Safari can't reliably paint a seeked <video>; static images
+  //             always paint, so scrubbing works everywhere.
+  //  static   — reduced motion: just the poster.
+  const [mode, setMode] = useState<"scrub" | "sequence" | "static">("static");
+  useLayoutEffect(() => {
+    if (reduce) {
+      setMode("static");
+      return;
+    }
+    const desktop = window.matchMedia("(min-width: 640px)").matches;
+    setMode(desktop ? "scrub" : "sequence");
+  }, [reduce]);
+
+  // Draw one sequence frame onto the canvas (object-cover math).
+  const drawSeq = useCallback((idx: number) => {
     const c = canvasRef.current;
-    if (!v || !c || !v.videoWidth) return;
+    const img = framesRef.current[idx];
+    if (!c || !img || !img.complete || !img.naturalWidth) return;
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    const scale = Math.max(c.width / v.videoWidth, c.height / v.videoHeight);
-    const dw = v.videoWidth * scale;
-    const dh = v.videoHeight * scale;
-    ctx.drawImage(v, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+    const scale = Math.max(
+      c.width / img.naturalWidth,
+      c.height / img.naturalHeight
+    );
+    const dw = img.naturalWidth * scale;
+    const dh = img.naturalHeight * scale;
+    ctx.drawImage(img, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
   }, []);
+
+  // Preload the frame sequence (mobile only).
+  useLayoutEffect(() => {
+    if (mode !== "sequence") return;
+    const imgs: HTMLImageElement[] = [];
+    for (let i = 1; i <= FRAME_COUNT; i++) {
+      const img = new Image();
+      img.src = `/hero/seq/${String(i).padStart(3, "0")}.jpg`;
+      img.onload = () => {
+        if (i - 1 === curIdxRef.current) drawSeq(curIdxRef.current);
+      };
+      imgs.push(img);
+    }
+    framesRef.current = imgs;
+  }, [mode, drawSeq]);
+
+  // Size the canvas device-pixel-sharp and repaint the current frame on resize.
+  useLayoutEffect(() => {
+    if (mode !== "sequence") return;
+    const c = canvasRef.current;
+    if (!c) return;
+    const resize = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const rect = c.getBoundingClientRect();
+      c.width = Math.round(rect.width * dpr);
+      c.height = Math.round(rect.height * dpr);
+      drawSeq(curIdxRef.current);
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(c);
+    return () => ro.disconnect();
+  }, [mode, drawSeq]);
 
   // Entrance waits for the splash curtain and must not replay when the
   // component mounts mid-scroll (locale switch, fast refresh).
@@ -90,71 +144,6 @@ export function Hero() {
     setIntro(window.scrollY > 80 ? "skip" : "play");
   }, [splashDone]);
   const skipIntro = intro === "skip";
-
-  // Scroll drives the video timeline on every device; reduced motion shows the
-  // static poster.
-  const [mode, setMode] = useState<"scrub" | "static">("static");
-  useLayoutEffect(() => {
-    setMode(reduce ? "static" : "scrub");
-  }, [reduce]);
-
-  // iOS blanks a seeked <video> that has never played, so "prime" the decoder
-  // once (muted play → pause) before scrubbing. Harmless on desktop.
-  useLayoutEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (mode === "static") {
-      v.pause();
-      v.currentTime = 0;
-      return;
-    }
-    let cancelled = false;
-    const prime = () => {
-      v.play()
-        .then(() => {
-          if (!cancelled) v.pause();
-        })
-        .catch(() => {});
-    };
-    if (v.readyState >= 2) prime();
-    else v.addEventListener("loadeddata", prime, { once: true });
-    return () => {
-      cancelled = true;
-      v.removeEventListener("loadeddata", prime);
-    };
-  }, [mode]);
-
-  // Size the canvas to its box (device-pixel-sharp) and repaint on resize.
-  useLayoutEffect(() => {
-    const c = canvasRef.current;
-    if (!c) return;
-    const resize = () => {
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const rect = c.getBoundingClientRect();
-      c.width = Math.round(rect.width * dpr);
-      c.height = Math.round(rect.height * dpr);
-      drawFrame();
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(c);
-    return () => ro.disconnect();
-  }, [drawFrame]);
-
-  // Repaint the canvas whenever the video has a new frame to show.
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const draw = () => drawFrame();
-    v.addEventListener("seeked", draw);
-    v.addEventListener("loadeddata", draw);
-    v.addEventListener("timeupdate", draw);
-    return () => {
-      v.removeEventListener("seeked", draw);
-      v.removeEventListener("loadeddata", draw);
-      v.removeEventListener("timeupdate", draw);
-    };
-  }, [drawFrame]);
 
   // The section is 300vh tall; the inner stage is sticky, so scrolling
   // through it drives the video timeline instead of moving the page.
@@ -180,12 +169,24 @@ export function Hero() {
     const ramp = (from: number, to: number) =>
       Math.min(1, Math.max(0, (progress - from) / (to - from)));
 
-    // Video scrub across the first 80% of the scroll range (desktop only).
-    const video = videoRef.current;
-    if (mode === "scrub" && video && video.duration) {
-      const target = ramp(0, 0.8) * (video.duration - 0.05);
-      if (Math.abs(video.currentTime - target) > 0.01) {
-        video.currentTime = target;
+    // Scrub the footage across the first 80% of the scroll range.
+    const scrub = ramp(0, 0.8);
+    if (mode === "scrub") {
+      const video = videoRef.current;
+      if (video && video.duration) {
+        const target = scrub * (video.duration - 0.05);
+        if (Math.abs(video.currentTime - target) > 0.01) {
+          video.currentTime = target;
+        }
+      }
+    } else if (mode === "sequence") {
+      const idx = Math.min(
+        FRAME_COUNT - 1,
+        Math.round(scrub * (FRAME_COUNT - 1))
+      );
+      if (idx !== curIdxRef.current) {
+        curIdxRef.current = idx;
+        drawSeq(idx);
       }
     }
 
@@ -197,9 +198,7 @@ export function Hero() {
 
     hintOpacity.set(1 - ramp(0, 0.08));
 
-    // Two-stage dissolve: darken the video first, then fade to the page
-    // background — a straight fade to a light background reads as a milky
-    // wash over the dark video.
+    // Two-stage dissolve: darken toward the page colour, then fade to bg.
     darkenOpacity.set(ramp(0.45, 0.8));
     fadeOpacity.set(ramp(0.75, 0.96));
   });
@@ -207,26 +206,36 @@ export function Hero() {
   return (
     <section ref={sectionRef} id="top" className="relative h-[200vh] sm:h-[300vh]">
       <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden">
-        {/* Video decodes off-screen (opacity 0); the canvas is what paints,
-            so iOS can't blank the seeked frame. Gradient shows only until the
-            first frame draws. */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-zinc-950 to-amber-950">
-          <video
-            ref={videoRef}
+        {/* Background: poster always underneath, so a real frame shows even
+            before the video/canvas paints — never a bare colour. */}
+        <div className="absolute inset-0 bg-zinc-950">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero/poster.jpg"
+            alt=""
             aria-hidden
-            tabIndex={-1}
-            className="absolute inset-0 h-full w-full object-cover opacity-0"
-            src="/hero/bali.mp4"
-            poster="/hero/poster.jpg"
-            muted
-            playsInline
-            preload="auto"
+            className="absolute inset-0 h-full w-full object-cover"
           />
-          <canvas
-            ref={canvasRef}
-            aria-hidden
-            className="absolute inset-0 h-full w-full"
-          />
+          {mode === "scrub" && (
+            <video
+              ref={videoRef}
+              aria-hidden
+              tabIndex={-1}
+              className="absolute inset-0 h-full w-full object-cover"
+              src="/hero/bali.mp4"
+              poster="/hero/poster.jpg"
+              muted
+              playsInline
+              preload="auto"
+            />
+          )}
+          {mode === "sequence" && (
+            <canvas
+              ref={canvasRef}
+              aria-hidden
+              className="absolute inset-0 h-full w-full"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-zinc-950/30 to-zinc-950/60" />
         </div>
 
@@ -297,16 +306,12 @@ export function Hero() {
           </motion.div>
         )}
 
-        {/* Reduced motion skips the scroll dissolve — keep a static bridge.
-            Gated on `intro` (set post-mount) so SSR and first client render
-            match and reduced-motion users don't hit a hydration mismatch. */}
+        {/* Reduced motion skips the scroll dissolve — keep a static bridge. */}
         {intro !== "pending" && reduce && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[18vh] bg-gradient-to-b from-transparent to-background" />
         )}
 
-        {/* Scroll-driven dissolve: first stage resolves toward the page colour
-            (near-black in dark, page-white in light — so light mode fades to
-            white instead of flashing to black), then a second fade to bg. */}
+        {/* Scroll-driven dissolve: darken toward the page colour, then fade. */}
         <motion.div
           style={{ opacity: reduce ? 0 : darkenOpacity }}
           className="pointer-events-none absolute inset-0 z-20 bg-[var(--hero-dissolve)]"
