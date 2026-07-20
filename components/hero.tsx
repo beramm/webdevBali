@@ -76,29 +76,37 @@ export function Hero() {
   }, [splashDone]);
   const skipIntro = intro === "skip";
 
-  // How the video behaves. Desktop scrubs the timeline on scroll; mobile can't
-  // reliably repaint a seeked, never-played <video> (iOS blanks it), so it
-  // autoplay-loops instead; reduced motion shows the static poster.
-  const [mode, setMode] = useState<"scrub" | "play" | "static">("static");
+  // Scroll drives the video timeline on every device; reduced motion shows the
+  // static poster.
+  const [mode, setMode] = useState<"scrub" | "static">("static");
   useLayoutEffect(() => {
-    if (reduce) {
-      setMode("static");
-      return;
-    }
-    const desktop = window.matchMedia("(min-width: 640px)").matches;
-    setMode(desktop ? "scrub" : "play");
+    setMode(reduce ? "static" : "scrub");
   }, [reduce]);
 
-  // Enforce the video state imperatively (attributes alone won't restart it).
+  // iOS blanks a seeked <video> that has never played, so "prime" the decoder
+  // once (muted play → pause) before scrubbing. Harmless on desktop.
   useLayoutEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (mode === "play") {
-      v.play?.().catch(() => {});
-    } else {
-      v.pause?.();
-      if (mode === "static") v.currentTime = 0;
+    if (mode === "static") {
+      v.pause();
+      v.currentTime = 0;
+      return;
     }
+    let cancelled = false;
+    const prime = () => {
+      v.play()
+        .then(() => {
+          if (!cancelled) v.pause();
+        })
+        .catch(() => {});
+    };
+    if (v.readyState >= 2) prime();
+    else v.addEventListener("loadeddata", prime, { once: true });
+    return () => {
+      cancelled = true;
+      v.removeEventListener("loadeddata", prime);
+    };
   }, [mode]);
 
   // The section is 300vh tall; the inner stage is sticky, so scrolling
@@ -164,8 +172,6 @@ export function Hero() {
             muted
             playsInline
             preload="auto"
-            autoPlay={mode === "play"}
-            loop={mode === "play"}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-zinc-950/30 to-zinc-950/60" />
         </div>
