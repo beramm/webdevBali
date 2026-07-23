@@ -7,26 +7,30 @@ import { setSessionCookie } from "@/lib/auth/session";
 
 const GENERIC_ERROR = { error: "Invalid or expired code." };
 
+// Only the code comes from the client; the account is always the admin.
 export async function POST(request: Request) {
-  let email: unknown, code: unknown;
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail) {
+    return NextResponse.json(GENERIC_ERROR, { status: 400 });
+  }
+
+  let code: unknown;
   try {
-    ({ email, code } = await request.json());
+    ({ code } = await request.json());
   } catch {
     return NextResponse.json(GENERIC_ERROR, { status: 400 });
   }
 
-  if (typeof email !== "string" || typeof code !== "string" || !/^\d{6}$/.test(code)) {
+  if (typeof code !== "string" || !/^\d{6}$/.test(code)) {
     return NextResponse.json(GENERIC_ERROR, { status: 400 });
   }
-
-  const normalized = email.trim().toLowerCase();
 
   const [record] = await db
     .select()
     .from(otpCodes)
     .where(
       and(
-        eq(otpCodes.email, normalized),
+        eq(otpCodes.email, adminEmail),
         isNull(otpCodes.consumedAt),
         gt(otpCodes.expiresAt, new Date())
       )
@@ -51,7 +55,7 @@ export async function POST(request: Request) {
     .set({ consumedAt: new Date() })
     .where(eq(otpCodes.id, record.id));
 
-  await setSessionCookie(normalized);
+  await setSessionCookie(adminEmail);
 
   return NextResponse.json({ ok: true });
 }
